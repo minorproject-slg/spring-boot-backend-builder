@@ -1,71 +1,77 @@
 import { useMemo, useRef, useState, type DragEvent } from "react";
 import { Link, Navigate, useParams } from "react-router";
 import { useBuilderState } from "../../features/builder/store";
+import type { NodeType } from "../../features/designer/types";
+import {
+  createDefaultProperties,
+  NodePropertiesDispatcher,
+  type NodeProperties,
+} from "../../components/designer/properties";
 
 type CatalogNode = {
   id: string;
+  nodeType: NodeType;
   label: string;
   category: "Database" | "Logic" | "Auth" | "Integration";
   description: string;
-  defaults: Record<string, string>;
 };
 
 const CATALOG_NODES: CatalogNode[] = [
   {
     id: "postgres",
+    nodeType: "database",
     label: "PostgreSQL",
     category: "Database",
     description: "Relational persistence with Spring Data JPA.",
-    defaults: { dialect: "PostgreSQL", migration: "Flyway", poolSize: "10" },
   },
   {
     id: "redis",
+    nodeType: "database",
     label: "Redis Cache",
     category: "Database",
     description: "In-memory caching for read-heavy endpoints.",
-    defaults: { mode: "Standalone", ttl: "300", prefix: "cache:" },
   },
   {
     id: "workflow",
+    nodeType: "service",
     label: "Workflow Rule",
     category: "Logic",
     description: "Branch business logic by condition and outcome.",
-    defaults: { timeoutMs: "5000", retries: "2", fallback: "none" },
   },
   {
     id: "transform",
+    nodeType: "service",
     label: "Payload Transform",
     category: "Logic",
     description: "Map payloads between API and domain contracts.",
-    defaults: { direction: "request", strictMode: "true", version: "v1" },
   },
   {
     id: "jwt",
+    nodeType: "jwtAuth",
     label: "JWT Guard",
     category: "Auth",
     description: "Token validation with role checks.",
-    defaults: { issuer: "internal", audience: "api", role: "USER" },
   },
   {
     id: "oauth",
+    nodeType: "oauth2",
     label: "OAuth2 Client",
     category: "Auth",
     description: "Federated login against identity providers.",
-    defaults: { provider: "google", scope: "openid profile", callback: "/oauth/callback" },
   },
   {
     id: "kafka",
+    nodeType: "restEndpoint",
     label: "Kafka Producer",
     category: "Integration",
     description: "Publish domain events to external consumers.",
-    defaults: { topic: "events.domain", acks: "all", serializer: "json" },
   },
   {
     id: "webhook",
+    nodeType: "restEndpoint",
     label: "Webhook Outbound",
     category: "Integration",
     description: "Deliver signed HTTP callbacks to partners.",
-    defaults: { method: "POST", retryPolicy: "exponential", timeoutMs: "3000" },
   },
 ];
 
@@ -77,9 +83,10 @@ const NODE_GAP = 20;
 type CanvasNode = {
   id: string;
   catalogId: string;
+  nodeType: NodeType;
   label: string;
   description: string;
-  defaults: Record<string, string>;
+  properties: NodeProperties;
   x: number;
   y: number;
 };
@@ -108,9 +115,10 @@ export default function Designer() {
   );
   const detailsNode = selectedCanvasNode
     ? {
+        nodeType: selectedCanvasNode.nodeType,
         label: selectedCanvasNode.label,
         description: selectedCanvasNode.description,
-        defaults: selectedCanvasNode.defaults,
+        properties: selectedCanvasNode.properties,
       }
     : activeCatalogNode;
 
@@ -164,9 +172,10 @@ export default function Designer() {
       const nextNode: CanvasNode = {
         id: nextId,
         catalogId: catalogNode.id,
+        nodeType: catalogNode.nodeType,
         label: catalogNode.label,
         description: catalogNode.description,
-        defaults: catalogNode.defaults,
+        properties: createDefaultProperties(catalogNode.nodeType, catalogNode.label),
         x: placement.x,
         y: placement.y,
       };
@@ -355,16 +364,23 @@ export default function Designer() {
             </div>
 
             <div className="mt-3 space-y-3">
-              {Object.entries(detailsNode.defaults).map(([key, value]) => (
-                <label key={key} className="block text-xs text-slate-300">
-                  <span className="mb-1 block capitalize text-slate-400">{key}</span>
-                  <input
-                    readOnly
-                    value={value}
-                    className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-200"
-                  />
-                </label>
-              ))}
+              {selectedCanvasNode ? (
+                <NodePropertiesDispatcher
+                  nodeType={selectedCanvasNode.nodeType}
+                  value={selectedCanvasNode.properties}
+                  onChange={(nextProperties) => {
+                    setCanvasNodes((nodes) =>
+                      nodes.map((node) =>
+                        node.id === selectedCanvasNode.id ? { ...node, properties: nextProperties } : node,
+                      ),
+                    );
+                  }}
+                />
+              ) : (
+                <p className="rounded-md border border-slate-700 bg-slate-900 p-3 text-xs text-slate-400">
+                  Select a node on the canvas to edit detailed properties.
+                </p>
+              )}
             </div>
           </div>
         </aside>

@@ -1,16 +1,13 @@
-import type { MouseEventHandler } from "react";
 import type { ProjectSummary } from "../../features/projects/types";
 
 type ProjectCardProps = {
   project: ProjectSummary;
-  onClick?: MouseEventHandler<HTMLElement>;
 };
 
-export default function ProjectCard({ project, onClick }: ProjectCardProps) {
+export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <article
-      onClick={onClick}
-      className="group flex h-full cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md"
+      className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-md"
     >
       <header className="mb-4 space-y-2">
         <h2 className="text-lg font-semibold text-slate-900">{project.name}</h2>

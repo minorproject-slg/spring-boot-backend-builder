@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import ProjectCard from "../components/projects/ProjectCard";
 import type { ProjectSummary } from "../features/projects/types";
 
@@ -72,11 +72,9 @@ export default function Home() {
         <section>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {mockProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={() => navigate(`/projects/${project.id}/designer`)}
-              />
+              <Link key={project.id} to={`/projects/${project.id}/designer`} className="block h-full">
+                <ProjectCard project={project} />
+              </Link>
             ))}
           </div>
         </section>

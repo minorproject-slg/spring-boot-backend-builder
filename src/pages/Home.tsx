@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import ProjectCard from "../components/projects/ProjectCard";
 import type { ProjectSummary } from "../features/projects/types";
 
@@ -37,6 +38,8 @@ const mockProjects: ProjectSummary[] = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <nav className="border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -48,6 +51,7 @@ export default function Home() {
 
           <button
             type="button"
+            onClick={() => navigate("/projects/new")}
             className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
           >
             New Project
@@ -68,7 +72,11 @@ export default function Home() {
         <section>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {mockProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onClick={() => navigate(`/projects/${project.id}/designer`)}
+              />
             ))}
           </div>
         </section>
